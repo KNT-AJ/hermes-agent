@@ -3078,7 +3078,7 @@ async def update_hermes():
         }
 
     try:
-        proc = _spawn_hermes_action(["update"], "hermes-update")
+        proc = _spawn_hermes_action(["update", "--branch", _dragonfly_update_branch()], "hermes-update")
     except Exception as exc:
         _log.exception("Failed to spawn hermes update")
         raise HTTPException(status_code=500, detail=f"Failed to start update: {exc}")
@@ -3089,18 +3089,23 @@ async def update_hermes():
     }
 
 
-def _recent_upstream_commits(n: int = 20) -> List[Dict[str, Any]]:
-    """Commits the local checkout is behind ``origin/main`` by, newest first.
+def _dragonfly_update_branch() -> str:
+    branch = os.environ.get("HERMES_UPDATE_BRANCH", "dragonfly").strip()
+    return branch if branch and not branch.startswith("-") else "dragonfly"
 
-    Logs the SAME range the behind-count uses (``HEAD..origin/main`` — see
-    ``banner._check_via_local_git``), NOT the branch's ``@{upstream}``. On a
+
+def _recent_upstream_commits(n: int = 20, branch: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Commits the local checkout is behind ``origin/<branch>`` by, newest first.
+
+    Logs the same range the branded behind-count uses, NOT the branch's ``@{upstream}``. On a
     feature-branch checkout ``@{upstream}`` is the branch's own tip (zero
     commits), which would leave the changelog empty even though the count is
-    non-zero. Pinning to ``origin/main`` keeps count and changelog consistent.
+    non-zero. Pinning to ``origin/<branch>`` keeps count and changelog consistent.
 
     Best-effort: returns [] if not a git checkout, origin/main is unreachable,
     or git is unavailable. Never raises into the request path.
     """
+    branch = branch or _dragonfly_update_branch()
     try:
         out = subprocess.run(
             [
@@ -3109,7 +3114,7 @@ def _recent_upstream_commits(n: int = 20) -> List[Dict[str, Any]]:
                 str(PROJECT_ROOT),
                 "log",
                 "--format=%H%x1f%s%x1f%an%x1f%ct",
-                "HEAD..origin/main",
+                f"HEAD..origin/{branch}",
                 f"-n{int(n)}",
             ],
             capture_output=True,
@@ -3135,6 +3140,54 @@ def _recent_upstream_commits(n: int = 20) -> List[Dict[str, Any]]:
         return rows
     except Exception:
         return []
+
+
+def _dragonfly_git_update_check(branch: str) -> Tuple[Optional[int], Optional[str]]:
+    try:
+        fetched = subprocess.run(
+            ["git", "-C", str(PROJECT_ROOT), "fetch", "--quiet", "origin", branch],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if fetched.returncode != 0:
+            return None, (fetched.stderr or "git fetch failed").strip()
+
+        target = subprocess.run(
+            ["git", "-C", str(PROJECT_ROOT), "rev-parse", f"origin/{branch}"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if target.returncode != 0:
+            return None, (target.stderr or "git rev-parse failed").strip()
+
+        current = subprocess.run(
+            ["git", "-C", str(PROJECT_ROOT), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if current.returncode != 0:
+            return None, (current.stderr or "git rev-parse failed").strip()
+
+        if current.stdout.strip() == target.stdout.strip():
+            return 0, None
+
+        count = subprocess.run(
+            ["git", "-C", str(PROJECT_ROOT), "rev-list", f"HEAD..origin/{branch}", "--count"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if count.returncode == 0:
+            try:
+                return int(count.stdout.strip() or "0"), None
+            except ValueError:
+                pass
+        return 1, None
+    except Exception as exc:
+        return None, str(exc)
 
 
 @app.get("/api/hermes/update/check")
@@ -3178,7 +3231,10 @@ async def check_hermes_update(force: bool = False):
         }
 
     install_method = detect_install_method(PROJECT_ROOT)
+    update_branch = _dragonfly_update_branch()
     update_command = recommended_update_command_for_method(install_method)
+    if install_method == "git":
+        update_command = f"hermes update --branch {update_branch}"
 
     payload: Dict[str, Any] = {
         "install_method": install_method,
@@ -3194,26 +3250,33 @@ async def check_hermes_update(force: bool = False):
         payload["message"] = format_docker_update_message()
         return payload
 
-    # banner.check_for_updates() handles git / pypi / nix-revision paths and
+    # banner.check_for_updates() handles pypi / nix-revision paths and
     # caches the result for 6h. ``force`` busts the cache so the "Check now"
-    # button reflects reality immediately.
+    # button reflects reality immediately. Git installs are branded to
+    # origin/dragonfly so the dashboard update button cannot drift to upstream/main.
     try:
-        from hermes_cli.banner import check_for_updates
+        if install_method == "git":
+            behind, error_message = await asyncio.to_thread(_dragonfly_git_update_check, update_branch)
+            if error_message:
+                payload["message"] = error_message
+        else:
+            from hermes_cli.banner import check_for_updates
 
-        if force:
-            try:
-                (get_hermes_home() / ".update_check").unlink()
-            except OSError:
-                pass
+            if force:
+                try:
+                    (get_hermes_home() / ".update_check").unlink()
+                except OSError:
+                    pass
 
-        behind = await asyncio.to_thread(check_for_updates)
+            behind = await asyncio.to_thread(check_for_updates)
     except Exception:
         _log.exception("Update check failed")
         behind = None
 
     payload["behind"] = behind
     if behind is None:
-        payload["message"] = "Couldn't reach the update source — try again later."
+        if not payload["message"]:
+            payload["message"] = "Couldn't reach the update source — try again later."
     elif behind == 0:
         payload["message"] = "You're on the latest version."
     else:
@@ -3221,8 +3284,13 @@ async def check_hermes_update(force: bool = False):
         # Enrich with the actual commits we're behind by, so the desktop's
         # remote update overlay can show "what's changed". git/pip only;
         # best-effort (empty list on any failure).
-        if install_method in ("git", "pip"):
-            payload["commits"] = await asyncio.to_thread(_recent_upstream_commits)
+        if install_method == "git":
+            payload["commits"] = await asyncio.to_thread(_recent_upstream_commits, branch=update_branch)
+        elif install_method == "pip":
+            try:
+                payload["commits"] = await asyncio.to_thread(_recent_upstream_commits, branch=update_branch)
+            except Exception:
+                pass
 
     return payload
 
