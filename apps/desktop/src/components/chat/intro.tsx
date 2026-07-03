@@ -143,7 +143,7 @@ function pickCopy(copies: IntroCopy[], seed = 0): IntroCopy {
 }
 
 const WORDMARK = 'DRAGONFLY'
-const KNT_LOGO = `${import.meta.env.BASE_URL}knt-logo-horizontal.svg`
+const KNT_LOGO = `${import.meta.env.BASE_URL}knt-logo-final-tm.jpg`
 
 function resolveCopy(personality?: string, seed?: number): IntroCopy {
   const personalityKey = normalizeKey(personality)
@@ -167,7 +167,7 @@ export function Intro({ personality, seed }: IntroProps) {
       <div className="w-full min-w-0">
         <img
           alt="Kremenak Nanotech, Inc."
-          className="mx-auto mb-5 h-auto w-40 max-w-[42vw] opacity-95 sm:w-48"
+          className="mx-auto mb-6 h-auto w-56 max-w-[46vw] mix-blend-multiply sm:w-64"
           src={KNT_LOGO}
         />
 
