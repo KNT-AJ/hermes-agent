@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="KNT">
   <rect width="256" height="256" rx="28" fill="#ffffff"/>
   <rect x="0" y="0" width="256" height="256" rx="28" fill="#f8faf9"/>
-  <g transform="translate(28 48)">
+  <g transform="translate(28 48) scale(0.78)">
     <path d="M0 0h76L38 40 0 80z" fill="#2fadac"/>
     <path d="M0 80h76L38 40z" fill="#88cfc7"/>
     <path d="M0 0h76L38 40z" fill="#72c4bc"/>
