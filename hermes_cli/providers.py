@@ -211,6 +211,23 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
         transport="bedrock_converse",
         auth_type="aws_sdk",
     ),
+    "agent-zero": HermesOverlay(
+        transport="openai_chat",
+        extra_env_vars=("AGENT_ZERO_API_KEY", "A0_API_KEY"),
+        base_url_override="https://llm.agent-zero.ai/v1",
+        base_url_env_var="AGENT_ZERO_BASE_URL",
+    ),
+    "venice": HermesOverlay(
+        transport="openai_chat",
+        extra_env_vars=("VENICE_API_KEY",),
+        base_url_override="https://api.venice.ai/api/v1",
+        base_url_env_var="VENICE_BASE_URL",
+    ),
+    "gemma-vllm": HermesOverlay(
+        transport="openai_chat",
+        extra_env_vars=("GEMMA_VLLM_API_KEY",),
+        base_url_override="http://192.168.4.31:8070/v1",
+    ),
 }
 
 
@@ -352,6 +369,17 @@ ALIASES: Dict[str, str] = {
     "llamacpp": "local",
     "llama.cpp": "local",
     "llama-cpp": "local",
+
+    # agent-zero / venice / gemma-vllm (Dragonfly custom providers)
+    "agent_zero": "agent-zero",
+    "agentzero": "agent-zero",
+    "a0": "agent-zero",
+    "a0-api": "agent-zero",
+    "agent-zero-api": "agent-zero",
+    "venice-ai": "venice",
+    "veniceai": "venice",
+    "gemma-local": "gemma-vllm",
+    "vllm-gemma": "gemma-vllm",
 }
 
 
@@ -373,6 +401,9 @@ _LABEL_OVERRIDES: Dict[str, str] = {
     "bedrock": "AWS Bedrock",
     "ollama-cloud": "Ollama Cloud",
     "xai-oauth": "xAI Grok OAuth (SuperGrok / Premium+)",
+    "agent-zero": "Agent Zero API",
+    "venice": "Venice.ai",
+    "gemma-vllm": "Local Models — Gemma",
 }
 
 
