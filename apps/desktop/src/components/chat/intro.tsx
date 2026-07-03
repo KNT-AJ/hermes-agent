@@ -1,7 +1,5 @@
 import { type CSSProperties, useState } from 'react'
 
-import { BrandMark } from '@/components/brand-mark'
-
 import introCopyJsonl from './intro-copy.jsonl?raw'
 
 type IntroCopy = {
@@ -145,6 +143,7 @@ function pickCopy(copies: IntroCopy[], seed = 0): IntroCopy {
 }
 
 const WORDMARK = 'DRAGONFLY'
+const KNT_LOGO = `${import.meta.env.BASE_URL}knt-logo-horizontal.svg`
 
 function resolveCopy(personality?: string, seed?: number): IntroCopy {
   const personalityKey = normalizeKey(personality)
@@ -166,7 +165,11 @@ export function Intro({ personality, seed }: IntroProps) {
       data-slot="aui_intro"
     >
       <div className="w-full min-w-0">
-        <BrandMark className="mx-auto mb-5 size-20 shadow-sm" />
+        <img
+          alt="Kremenak Nanotech, Inc."
+          className="mx-auto mb-5 h-auto w-40 max-w-[42vw] opacity-95 sm:w-48"
+          src={KNT_LOGO}
+        />
 
         <p
           aria-label={WORDMARK}
