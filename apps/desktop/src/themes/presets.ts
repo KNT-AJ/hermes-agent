@@ -20,80 +20,80 @@ const SYSTEM_MONO =
 
 export const DEFAULT_TYPOGRAPHY: DesktopThemeTypography = { fontSans: SYSTEM_SANS, fontMono: SYSTEM_MONO }
 
-const NOUS_BLUE = '#0053FD'
-const PSYCHE_BLUE = '#1540B1'
-const PSYCHE_WARM = '#FFE6CB'
+const KNT_ORANGE = '#f47626'
+const KNT_GREEN = '#80b642'
+const KNT_TEAL = '#2fadac'
+const KNT_CHARCOAL = '#414042'
 
-const nousTint = (pct: number) => `color-mix(in srgb, ${NOUS_BLUE} ${pct}%, #FFFFFF)`
-const nousTintTransparent = (pct: number) => `color-mix(in srgb, ${NOUS_BLUE} ${pct}%, transparent)`
+const kntTint = (color: string, pct: number) => `color-mix(in srgb, ${color} ${pct}%, #FFFFFF)`
+const kntTintTransparent = (color: string, pct: number) => `color-mix(in srgb, ${color} ${pct}%, transparent)`
 
 /**
- * Nous — canonical Hermes desktop identity. The palette keeps the current
- * glass geometry neutral, then lets the old bb/gui blue and psyche cream
- * return as accent seeds.
+ * KNT — Kremenak Nanotech identity for the custom desktop shell. The palette
+ * keeps work surfaces neutral, using KNT orange for action and teal/green for
+ * supporting brand accents.
  */
 export const nousTheme: DesktopTheme = {
   name: 'nous',
-  label: 'Nous',
-  description: 'Glass neutrals with Nous blue accents',
+  label: 'KNT',
+  description: 'Neutral workspace with Kremenak Nanotech accents',
   colors: {
-    background: '#F8FAFF',
-    foreground: '#17171A',
+    background: '#F8FAF9',
+    foreground: '#272424',
     card: '#FFFFFF',
-    cardForeground: '#17171A',
-    muted: nousTint(5),
-    mutedForeground: '#666678',
+    cardForeground: '#272424',
+    muted: kntTint(KNT_TEAL, 7),
+    mutedForeground: '#696566',
     popover: '#FFFFFF',
-    popoverForeground: '#17171A',
-    primary: NOUS_BLUE,
-    primaryForeground: '#FCFCFC',
-    secondary: nousTint(7),
-    secondaryForeground: '#242432',
-    accent: nousTint(10),
-    accentForeground: '#202030',
-    border: nousTintTransparent(22),
-    input: nousTintTransparent(30),
-    ring: NOUS_BLUE,
-    midground: NOUS_BLUE,
-    composerRing: NOUS_BLUE,
+    popoverForeground: '#272424',
+    primary: KNT_ORANGE,
+    primaryForeground: '#FFFFFF',
+    secondary: kntTint(KNT_GREEN, 12),
+    secondaryForeground: '#2B3324',
+    accent: kntTint(KNT_TEAL, 12),
+    accentForeground: '#1D3C39',
+    border: kntTintTransparent(KNT_TEAL, 24),
+    input: kntTintTransparent(KNT_TEAL, 32),
+    ring: KNT_TEAL,
+    midground: KNT_GREEN,
+    composerRing: KNT_ORANGE,
     destructive: '#C72E4D',
     destructiveForeground: '#FFFFFF',
-    sidebarBackground: '#F3F7FF',
-    sidebarBorder: nousTintTransparent(18),
-    userBubble: nousTint(6),
-    userBubbleBorder: nousTintTransparent(24)
+    sidebarBackground: '#F1F6F3',
+    sidebarBorder: kntTintTransparent(KNT_TEAL, 20),
+    userBubble: kntTint(KNT_ORANGE, 7),
+    userBubbleBorder: kntTintTransparent(KNT_ORANGE, 24)
   },
   darkColors: {
-    background: '#0D2F86',
-    foreground: PSYCHE_WARM,
-    card: '#12378F',
-    cardForeground: PSYCHE_WARM,
-    muted: '#183F9A',
-    mutedForeground: '#B5C7F3',
-    popover: '#123A96',
-    popoverForeground: PSYCHE_WARM,
-    primary: PSYCHE_WARM,
-    primaryForeground: '#0D2F86',
-    secondary: '#1B45A4',
-    secondaryForeground: '#E0E8FF',
-    accent: PSYCHE_BLUE,
-    accentForeground: '#F0F4FF',
-    border: '#3158AD',
-    input: '#0B2566',
-    ring: PSYCHE_WARM,
-    midground: NOUS_BLUE,
-    composerRing: PSYCHE_WARM,
-    destructive: '#C0473A',
+    background: '#272424',
+    foreground: '#F7F3EF',
+    card: '#302C2D',
+    cardForeground: '#F7F3EF',
+    muted: '#393435',
+    mutedForeground: '#C9C0BD',
+    popover: '#332F30',
+    popoverForeground: '#F7F3EF',
+    primary: KNT_ORANGE,
+    primaryForeground: '#FFFFFF',
+    secondary: '#3B4A2A',
+    secondaryForeground: '#E5F3D0',
+    accent: '#245F5A',
+    accentForeground: '#DDF4F1',
+    border: '#4A5552',
+    input: '#3B4140',
+    ring: KNT_TEAL,
+    midground: KNT_GREEN,
+    composerRing: KNT_ORANGE,
+    destructive: '#D45A4D',
     destructiveForeground: '#FEF2F2',
-    sidebarBackground: '#09286F',
-    sidebarBorder: '#234A9C',
-    userBubble: '#143B91',
-    userBubbleBorder: '#3A63BD'
+    sidebarBackground: '#211F20',
+    sidebarBorder: '#3C4D49',
+    userBubble: '#3B3028',
+    userBubbleBorder: '#7A4D34'
   },
   typography: {
-    fontSans: SYSTEM_SANS,
-    fontMono: `"Courier Prime", ${SYSTEM_MONO}`,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
+    fontSans: `"Avenir Next", Avenir, ${SYSTEM_SANS}`,
+    fontMono: SYSTEM_MONO
   }
 }
 
